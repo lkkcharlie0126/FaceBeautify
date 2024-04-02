@@ -20,3 +20,5 @@ videos/
 models/
 
 *.npy
+
+*.pkl

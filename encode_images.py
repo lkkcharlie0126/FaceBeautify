@@ -92,6 +92,7 @@ def main():
     parser.add_argument('--video_skip', default=1, help='Only write every n frames (1 = write every frame)', type=int)
 
     args, other_args = parser.parse_known_args()
+    print(args)
 
     args.decay_steps *= 0.01 * args.iterations # Calculate steps as a percent of total iterations
 
@@ -141,6 +142,7 @@ def main():
         perceptual_model.set_reference_images(images_batch)
         dlatents = None
         if (args.load_last != ''): # load previous dlatents for initialization
+            print('here')
             for name in names:
                 dl = np.expand_dims(np.load(os.path.join(args.load_last, f'{name}.npy')),axis=0)
                 if (dlatents is None):
@@ -148,17 +150,20 @@ def main():
                 else:
                     dlatents = np.vstack((dlatents,dl))
         else:
-            if (ff_model is None):
-                if os.path.exists(args.load_resnet):
-                    from keras.applications.resnet50 import preprocess_input
-                    print("Loading ResNet Model:")
-                    ff_model = load_model(args.load_resnet)
-            if (ff_model is None):
-                if os.path.exists(args.load_effnet):
-                    import efficientnet
-                    from efficientnet import preprocess_input
-                    print("Loading EfficientNet Model:")
-                    ff_model = load_model(args.load_effnet)
+            print('here2')
+            # if (ff_model is None):
+            #     print('load_resnet', args.load_resnet)
+            #     print('resnet', os.path.exists(args.load_resnet))
+            #     if os.path.exists(args.load_resnet):
+            #         from keras.applications.resnet50 import preprocess_input
+            #         print("Loading ResNet Model:")
+            #         ff_model = load_model(args.load_resnet)
+            # if (ff_model is None):
+            #     if os.path.exists(args.load_effnet):
+            #         import efficientnet
+            #         from efficientnet import preprocess_input
+            #         print("Loading EfficientNet Model:")
+            #         ff_model = load_model(args.load_effnet)
             if (ff_model is not None): # predict initial dlatents with ResNet model
                 if (args.use_preprocess_input):
                     dlatents = ff_model.predict(preprocess_input(load_images(images_batch,image_size=args.resnet_image_size)))

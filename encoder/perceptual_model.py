@@ -1,7 +1,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import tensorflow as tf
 #import tensorflow_probability as tfp
-#tf.enable_eager_execution()
+# tf.enable_eager_execution()
+# tf.reset_default_graph()
 
 import os
 import bz2
@@ -62,7 +63,8 @@ def unpack_bz2(src_path):
 class PerceptualModel:
     def __init__(self, args, batch_size=1, perc_model=None, sess=None):
         self.sess = tf.get_default_session() if sess is None else sess
-        K.set_session(self.sess)
+        # K.set_session(self.sess)
+        
         self.epsilon = 0.00000001
         self.lr = args.lr
         self.decay_rate = args.decay_rate
@@ -139,22 +141,27 @@ class PerceptualModel:
         generated_image_tensor = generator.generated_image
         generated_image = tf.image.resize_nearest_neighbor(generated_image_tensor,
                                                                   (self.img_size, self.img_size), align_corners=True)
-
+        
+        # with tf.variable_scope('ref_imgs', reuse=False):
         self.ref_img = tf.get_variable('ref_img', shape=generated_image.shape,
                                                 dtype='float32', initializer=tf.initializers.zeros())
         self.ref_weight = tf.get_variable('ref_weight', shape=generated_image.shape,
-                                               dtype='float32', initializer=tf.initializers.zeros())
+                                            dtype='float32', initializer=tf.initializers.zeros())
         self.add_placeholder("ref_img")
         self.add_placeholder("ref_weight")
 
         if (self.vgg_loss is not None):
+            
             vgg16 = VGG16(include_top=False, input_shape=(self.img_size, self.img_size, 3))
             self.perceptual_model = Model(vgg16.input, vgg16.layers[self.layer].output)
             generated_img_features = self.perceptual_model(preprocess_input(self.ref_weight * generated_image))
+
+            # with tf.variable_scope('ref_img_features', reuse=False):
             self.ref_img_features = tf.get_variable('ref_img_features', shape=generated_img_features.shape,
                                                 dtype='float32', initializer=tf.initializers.zeros())
+            # with tf.variable_scope('features_weight', reuse=False):
             self.features_weight = tf.get_variable('features_weight', shape=generated_img_features.shape,
-                                               dtype='float32', initializer=tf.initializers.zeros())
+                                            dtype='float32', initializer=tf.initializers.zeros())
             self.sess.run([self.features_weight.initializer, self.features_weight.initializer])
             self.add_placeholder("ref_img_features")
             self.add_placeholder("features_weight")

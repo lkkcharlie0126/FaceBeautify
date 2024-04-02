@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  retouch_ml:
+    image: retouch_ml
+    container_name: retouch_ml
+    build:
+      dockerfile: ./dockerfile
+      context: ./
+    restart: unless-stopped
+    ports:
+      - ${PORT}:${PORT}
+    volumes:
+      - ./:/app
+    env_file:
+      - .env
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
