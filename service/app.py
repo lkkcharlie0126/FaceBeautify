@@ -17,7 +17,7 @@ PORT=int(os.environ.get('PORT', 8648))
 SERVER_ENV=os.environ.get('SERVER_ENV', 'debug')
 
 
-with open('app_description.html', 'r', encoding='utf-8') as file:
+with open('/app/service/app_description.html', 'r', encoding='utf-8') as file:
     description = file.read()
 
 app = FastAPI(

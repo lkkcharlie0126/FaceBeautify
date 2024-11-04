@@ -1,9 +1,11 @@
+from io import BytesIO
 import os
 import sys
 sys.path.append('/app')
 
 import base64
 import uuid
+from PIL import Image
 
 
 from beautify_pipeline.aligned_image.aligned_image import align
@@ -39,8 +41,15 @@ def remove_dirs(dirs):
 
 
 def save_base64_image(image, save_path) -> str:
-    with open(save_path, 'wb') as f:
-        f.write(base64.b64decode(image))
+    # resize image to 256x256 and save to disk
+    image = Image.open(BytesIO(base64.b64decode(image)))
+    print('original image size:', image.size)
+    # if image.height > image.width:
+    #     image = image.resize((image.width * 1480 // image.height, 1480))
+    # else:
+    #     image = image.resize((1480, image.height * 1480 // image.width))
+    image.save(save_path)
+
 
 def load_image_to_base64(image_path: str) -> str:
     with open(image_path, 'rb') as f:
@@ -56,6 +65,7 @@ def pipeline(image: str) -> str:
 
     # save image to disk
     print('saving image...')
+    print(image[:50])
     save_base64_image(image, os.path.join(dirs['raw_images_dir'], image_name + '.png'))
 
     # align image

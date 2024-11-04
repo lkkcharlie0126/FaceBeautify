@@ -91,12 +91,14 @@ def encode(args):
         dlatents = None
         if (args.load_last != ''): # load previous dlatents for initialization
             for name in names:
+                print('name:', name)
                 dl = np.expand_dims(np.load(os.path.join(args.load_last, f'{name}.npy')),axis=0)
                 if (dlatents is None):
                     dlatents = dl
                 else:
                     dlatents = np.vstack((dlatents,dl))
-        else:
+                print('dlatents:', dlatents.shape)
+        # else:
             # if (ff_model is None):
             #     if os.path.exists(args.load_resnet):
             #         from keras.applications.resnet50 import preprocess_input
@@ -108,13 +110,15 @@ def encode(args):
             #         from efficientnet import preprocess_input
             #         print("Loading EfficientNet Model:")
             #         ff_model = load_model(args.load_effnet)
-            if (ff_model is not None): # predict initial dlatents with ResNet model
-                if (args.use_preprocess_input):
-                    dlatents = ff_model.predict(preprocess_input(load_images(images_batch,image_size=args.resnet_image_size)))
-                else:
-                    dlatents = ff_model.predict(load_images(images_batch,image_size=args.resnet_image_size))
+            # if (ff_model is not None): # predict initial dlatents with ResNet model
+            #     if (args.use_preprocess_input):
+            #         dlatents = ff_model.predict(preprocess_input(load_images(images_batch,image_size=args.resnet_image_size)))
+            #     else:
+            #         dlatents = ff_model.predict(load_images(images_batch,image_size=args.resnet_image_size))
+        # print(dlatents.shape if dlatents is not None else "dlatents is None")
         if dlatents is not None:
             generator.set_dlatents(dlatents)
+        
         op = perceptual_model.optimize(generator.dlatent_variable, iterations=args.iterations, use_optimizer=args.optimizer)
         pbar = tqdm(op, leave=False, total=args.iterations)
         vid_count = 0
@@ -164,6 +168,7 @@ def encode(args):
         # Generate images from found dlatents and save them
         if args.use_best_loss:
             generator.set_dlatents(best_dlatent)
+            
         generated_images = generator.generate_images()
         generated_dlatents = generator.get_dlatents()
         for img_array, dlatent, img_path, img_name in zip(generated_images, generated_dlatents, images_batch, names):
